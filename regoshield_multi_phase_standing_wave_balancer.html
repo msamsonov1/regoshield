@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RegoShield: Electrodynamic Dust Shield Multi-Phase Standing Wave Balancer</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bulletproof MathJax v3 Configuration -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #03050a;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+    .formula-box {
+      font-family: 'Times New Roman', Times, serif;
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.35);
+    }
+    .glow-amber {
+      box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.35);
+    }
+    .glow-rose {
+      box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.35);
+    }
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#03050a] text-slate-100">
+
+  <!-- Top Global Header -->
+  <header class="border-b border-gray-800 bg-[#060913]/90 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              RegoShield <span class="text-xs px-2 py-0.5 rounded-full font-mono font-medium bg-cyan-950 text-cyan-400 border border-cyan-800">EDS-BALANCER-v3.8</span>
+            </h1>
+            <span id="globalStatusBadge" class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/80 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> TRAVELING WAVE BALANCED
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">Electrodynamic Dust Shield Multi-Phase Standing Wave Balancer | NASA Artemis Domain</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center bg-gray-900/80 p-1 rounded-xl border border-gray-800 text-xs font-medium">
+        <button id="tabBtnSim" onclick="switchTab('sim')" class="px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 shadow-sm">
+          <i data-lucide="activity" class="w-3.5 h-3.5"></i> Live Simulation & Telemetry
+        </button>
+        <button id="tabBtnPhysics" onclick="switchTab('physics')" class="px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 text-slate-400 hover:text-white transition">
+          <i data-lucide="atom" class="w-3.5 h-3.5"></i> Core Physics & Math
+        </button>
+        <button id="tabBtnProposal" onclick="switchTab('proposal')" class="px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 text-slate-400 hover:text-white transition">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> NASA SBIR/STTR ($225k)
+        </button>
+        <button id="tabBtnARR" onclick="switchTab('arr')" class="px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 text-slate-400 hover:text-white transition">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Commercial ARR ($214M)
+        </button>
+      </nav>
+
+      <!-- Quick Action / Print -->
+      <div class="hidden sm:flex items-center gap-2">
+        <button onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/60 hover:bg-gray-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i> Export Dossier
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-6">
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: LIVE SIMULATION & TELEMETRY HUD -->
+    <!-- ========================================================================= -->
+    <section id="viewSim" class="space-y-6">
+
+      <!-- Real-Time Alert Banner -->
+      <div id="telemetryBanner" class="p-3.5 rounded-xl border border-cyan-900/60 bg-cyan-950/20 text-xs flex flex-wrap items-center justify-between gap-3 text-cyan-200">
+        <div class="flex items-center gap-2.5">
+          <i id="bannerIcon" data-lucide="check-circle" class="w-4 h-4 text-cyan-400"></i>
+          <span id="bannerText">Nominal 3-Phase Traveling Wave Active: Inter-electrode offset $\Delta\theta \approx 120.0^\circ$ at $f = 24.5\text{ kHz}$. Continuous lateral dielectrophoretic clearance verified.</span>
+        </div>
+        <div class="flex items-center gap-3 mono text-[11px]">
+          <span class="text-slate-400">EDS INVERTER: <strong class="text-cyan-400" id="invPwrBadge">1.85 kV @ 12.4W</strong></span>
+          <span class="text-slate-400">WAVE VELOCITY: <strong class="text-emerald-400" id="waveVelBadge">122.5 m/s</strong></span>
+        </div>
+      </div>
+
+      <!-- Top Row: Physical Hardware Canvas & Phase-Space Orbit Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Physical Simulation Canvas (7 Cols) -->
+        <div class="lg:col-span-7 bg-[#050811] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="p-1 rounded bg-cyan-950 border border-cyan-800 text-cyan-400 text-xs"><i data-lucide="cpu" class="w-3.5 h-3.5"></i></span>
+              <h2 class="text-sm font-semibold text-white">Lunar Array Electrodynamic Dust Shield (3-Phase Cross-Section)</h2>
+            </div>
+            <div class="flex items-center gap-2 mono text-[11px]">
+              <span class="text-slate-400">Node Dead-Zones:</span>
+              <span id="nodeCountBadge" class="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800">0 DETECTED</span>
+            </div>
+          </div>
+
+          <!-- Canvas Element -->
+          <div class="relative w-full aspect-[16/9] bg-[#020307] rounded-xl border border-gray-900 overflow-hidden">
+            <canvas id="simCanvas" class="w-full h-full block"></canvas>
+            <!-- Overlay Canvas Legend -->
+            <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none px-2 py-1 bg-black/60 backdrop-blur rounded border border-gray-800/80 text-[10px] mono text-slate-300">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> Phase A ($0^\circ$)</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-violet-400 inline-block"></span> Phase B ($\theta_B$)</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Phase C ($\theta_C$)</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-1.5 rounded-sm bg-rose-400 inline-block"></span> Settled Regolith</span>
+            </div>
+          </div>
+
+          <!-- Real-Time Wave Status Footer -->
+          <div class="mt-3 grid grid-cols-4 gap-2 text-center text-xs mono">
+            <div class="p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <div class="text-[10px] text-slate-500">EXCITATION ($f$)</div>
+              <div id="statFreq" class="text-cyan-400 font-bold mt-0.5">24.5 kHz</div>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <div class="text-[10px] text-slate-500">PHASE SKEW ($\Delta\theta$)</div>
+              <div id="statSkew" class="text-emerald-400 font-bold mt-0.5">+0.3°</div>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <div class="text-[10px] text-slate-500">STANDING RATIO (SWR)</div>
+              <div id="statSWR" class="text-emerald-400 font-bold mt-0.5">1.04</div>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <div class="text-[10px] text-slate-500">TRANSMISSIVITY</div>
+              <div id="statTrans" class="text-cyan-400 font-bold mt-0.5">99.1%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Diagnostic Chart: Phase-Space Orbit (5 Cols) -->
+        <div class="lg:col-span-5 bg-[#050811] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-xl">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h2 class="text-sm font-semibold text-white flex items-center gap-2">
+                <i data-lucide="compass" class="w-4 h-4 text-cyan-400"></i> Phase-Space State Orbit
+              </h2>
+              <p class="text-[11px] text-slate-400">Frequency ($f$) vs. Polyphase Angle Offset ($\theta$)</p>
+            </div>
+            <span class="text-[10px] mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">LIVE TRAJECTORY</span>
+          </div>
+
+          <!-- Chart.js Container -->
+          <div class="relative w-full h-[270px]">
+            <canvas id="phaseSpaceChart"></canvas>
+          </div>
+
+          <div class="mt-2 p-2 rounded-lg bg-gray-950/70 border border-gray-800 text-[11px] text-slate-400 leading-relaxed">
+            <span class="text-cyan-300 font-semibold">Diagnostic Insight:</span> Safe operation requires maintaining state inside the central green nominal traveling-wave corridor ($115^\circ \le \theta \le 125^\circ$). Escaping into the red hatched boundaries triggers destructive standing wave nodes where electrostatic pinning occurs.
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Telemetry Plots & Closed-Loop Control System -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Telemetry Time-Series: SWR & Repulsion Force (7 Cols) -->
+        <div class="lg:col-span-7 bg-[#050811] border border-gray-800 rounded-2xl p-4 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <i data-lucide="gauge" class="w-4 h-4 text-violet-400"></i> High-Speed Dynamic Telemetry
+              </h3>
+              <p class="text-[11px] text-slate-400">Wave Standing Ratio (SWR) & Lateral Dielectrophoretic Ejection Force ($F_x$)</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] mono">
+              <span class="flex items-center gap-1 text-cyan-400"><span class="w-2 h-0.5 bg-cyan-400 inline-block"></span> SWR</span>
+              <span class="flex items-center gap-1 text-emerald-400"><span class="w-2 h-0.5 bg-emerald-400 inline-block"></span> Repulsion $F_x$ ($\mu\text{N}$)</span>
+            </div>
+          </div>
+          <div class="h-[180px] w-full">
+            <canvas id="timeSeriesChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Closed-Loop Control & Fault Injection Console (5 Cols) -->
+        <div class="lg:col-span-5 bg-[#050811] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between shadow-xl">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i> Autonomous Inverter Balancer
+              </h3>
+              <div class="flex items-center gap-1.5">
+                <label class="text-[10px] text-slate-400 uppercase mono">Closed-Loop Auto:</label>
+                <input type="checkbox" id="autoLoopToggle" checked class="w-4 h-4 accent-cyan-500 rounded cursor-pointer">
+              </div>
+            </div>
+
+            <!-- Sliders for Physical Perturbations -->
+            <div class="space-y-3.5 text-xs">
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Regolith Capacitive Skew ($\Delta C_r$):</span>
+                  <span id="labelCapLoad" class="mono text-cyan-400 font-semibold">12.0 pF</span>
+                </div>
+                <input id="sliderCapLoad" type="range" min="0" max="60" step="1" value="12" class="w-full accent-cyan-400 bg-gray-800 rounded-lg h-1.5 cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                  <span>Pristine Array (0 pF)</span>
+                  <span>Heavy Settling (60 pF)</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Inverter Drive Frequency ($f$):</span>
+                  <span id="labelDriveFreq" class="mono text-violet-400 font-semibold">24.5 kHz</span>
+                </div>
+                <input id="sliderDriveFreq" type="range" min="10" max="40" step="0.5" value="24.5" class="w-full accent-violet-400 bg-gray-800 rounded-lg h-1.5 cursor-pointer">
+                <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                  <span>10.0 kHz</span>
+                  <span>Resonant Sweep (40.0 kHz)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fault Injection Triggers -->
+            <div class="mt-4 pt-3 border-t border-gray-800/80">
+              <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400 block mb-2">Simulate Real-World Lunar Faults</span>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button onclick="injectFault('microcrack')" class="px-2.5 py-1.5 rounded-lg bg-gray-900 hover:bg-rose-950/60 border border-gray-800 hover:border-rose-700/60 text-slate-300 hover:text-rose-300 flex items-center justify-center gap-1.5 transition">
+                  <i data-lucide="zap-off" class="w-3.5 h-3.5 text-rose-400"></i> Micro-Crack Skew
+                </button>
+                <button onclick="injectFault('clumping')" class="px-2.5 py-1.5 rounded-lg bg-gray-900 hover:bg-amber-950/60 border border-gray-800 hover:border-amber-700/60 text-slate-300 hover:text-amber-300 flex items-center justify-center gap-1.5 transition">
+                  <i data-lucide="layers" class="w-3.5 h-3.5 text-amber-400"></i> Regolith Inrush
+                </button>
+                <button onclick="injectFault('harmonic')" class="px-2.5 py-1.5 rounded-lg bg-gray-900 hover:bg-violet-950/60 border border-gray-800 hover:border-violet-700/60 text-slate-300 hover:text-violet-300 flex items-center justify-center gap-1.5 transition">
+                  <i data-lucide="radio" class="w-3.5 h-3.5 text-violet-400"></i> 3rd Harmonic Bias
+                </button>
+                <button onclick="resetNominalState()" class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-800 text-cyan-200 flex items-center justify-center gap-1.5 transition">
+                  <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-cyan-400"></i> Reset Nominal
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Autonomous Balancer Status Indicator -->
+          <div class="mt-3 p-2.5 rounded-xl bg-gray-900/80 border border-gray-800 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <span id="retunerLed" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="retunerLabel" class="text-slate-300 mono text-[11px]">Phase Balancing Loop: Locked (0.12 ms)</span>
+            </div>
+            <button onclick="manualRetuneCycle()" class="px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-[10px] text-cyan-300 mono border border-gray-700">
+              FORCE RETUNE
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: CORE PHYSICS & MATHEMATICAL MODEL -->
+    <!-- ========================================================================= -->
+    <section id="viewPhysics" class="hidden space-y-6">
+
+      <!-- Scientific Architecture Overview Header -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-gray-900 via-[#0a0f1d] to-gray-900 border border-gray-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">Mathematical Formulation</span>
+          <h2 class="text-lg font-bold text-white mt-1">Nonlinear Multi-Phase Dielectrophoresis in Low-Permittivity Regolith Clusting</h2>
+          <p class="text-xs text-slate-400 max-w-3xl mt-1">
+            Governing field equations for traveling-wave electrostatic propulsion, Clausius-Mossotti polarizability, capacitive impedance loading, and closed-loop phase balancing.
+          </p>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-cyan-950/60 border border-cyan-800 text-cyan-400 text-xs mono">
+          NASA Subtopic: TX06.01 Dust Mitigation
+        </div>
+      </div>
+
+      <!-- 4 Core Mathematical Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Pillar 1: Travelling-Wave Electrodynamics -->
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+          <div>
+            <div class="flex items-center gap-2 text-cyan-400 mb-2">
+              <i data-lucide="waves" class="w-5 h-5"></i>
+              <h3 class="font-bold text-sm text-white">1. Polyphase Potential Field & Traveling Wave Force</h3>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              An $N$-phase Electrodynamic Dust Shield creates a non-uniform spatial electric potential distribution $V(x, y, t)$ across interdigitated surface electrodes spaced at pitch $\lambda$:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-cyan-300 text-xs overflow-x-auto my-3">
+              $$V(x, t) = \sum_{m=1}^{N} V_0 \cos\left(2\pi f t - \frac{2\pi x}{\lambda} + \theta_m\right)$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              The continuous time-averaged lateral dielectrophoretic force $\langle \mathbf{F}_{\text{DEP}} \rangle$ propelling uncharged and polarizable lunar grains is proportional to the gradient of the electric field squared:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-cyan-300 text-xs overflow-x-auto my-3">
+              $$\langle \mathbf{F}_{\text{DEP}} \rangle = 2\pi \varepsilon_0 \varepsilon_m r^3 \operatorname{Re}[K(\omega)] \nabla |\mathbf{E}_{\text{RMS}}|^2$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              When $\theta_m = \frac{2\pi(m-1)}{N}$, the wave travels unilaterally with linear phase velocity $v_p = \lambda f$. If $\theta_m$ deviates, spatial harmonics create standing nodes with zero lateral velocity ($\langle \mathbf{F}_{\text{DEP}} \rangle = 0$).
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800/80 text-[11px] text-slate-500">
+            <strong>Key Boundary:</strong> Phase angle drift $|\Delta\theta| > 15^\circ$ degrades net lateral clearance speed by $>82\%$.
+          </div>
+        </div>
+
+        <!-- Pillar 2: Complex Clausius-Mossotti Factor & Regolith Sintering -->
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+          <div>
+            <div class="flex items-center gap-2 text-violet-400 mb-2">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+              <h3 class="font-bold text-sm text-white">2. Grain Complex Polarizability & Charge Dynamics</h3>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Lunar regolith consists of jagged pyroxene, plagioclase, and nanophase metallic iron ($\text{npFe}^0$). Its dipole frequency response is governed by the Clausius-Mossotti function $K(\omega)$:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-violet-300 text-xs overflow-x-auto my-3">
+              $$K(\omega) = \frac{\varepsilon_p^* - \varepsilon_m^*}{\varepsilon_p^* + 2\varepsilon_m^*}, \quad \text{where } \varepsilon^* = \varepsilon - j\frac{\sigma}{\omega}$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              In addition to DEP, triboelectrically charged particles carrying surface charge $q_i$ experience dominant Coulombic repulsion and levitation:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-violet-300 text-xs overflow-x-auto my-3">
+              $$\mathbf{F}_{\text{total}} = q_i \mathbf{E}(x, y, t) + 2\pi \varepsilon_0 \varepsilon_m r^3 \operatorname{Re}[K(\omega)] \nabla |\mathbf{E}|^2 - m_i g_{\text{moon}}\hat{\mathbf{z}}$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Lunar gravity ($g_{\text{moon}} = 1.62\text{ m/s}^2$) allows micron-sized grains ($1\text{--}50\ \mu\text{m}$) to remain levitated in the 1–3 mm sheath layer, provided the electric traveling field retains cohesive directional phase vectoring.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800/80 text-[11px] text-slate-500">
+            <strong>Vacuum Characteristic:</strong> In lunar hard vacuum ($\approx 10^{-10}\text{ Pa}$), plasma discharge Paschen limit increases beyond 4 kV at sub-millimeter electrode pitches.
+          </div>
+        </div>
+
+        <!-- Pillar 3: Distributed Capacitive Skew & Standing Wave Ratio -->
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+          <div>
+            <div class="flex items-center gap-2 text-amber-400 mb-2">
+              <i data-lucide="activity-square" class="w-5 h-5"></i>
+              <h3 class="font-bold text-sm text-white">3. Regolith Loading & Phase Angle Skew ($\Delta\theta$)</h3>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              As jagged dust covers an electrode track, localized dielectric constant climbs from $\varepsilon_r \approx 1.0$ (vacuum) to $\varepsilon_r \approx 2.8\text{--}3.5$. This induces variable capacitive shunt loading $\Delta C_m$:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-amber-300 text-xs overflow-x-auto my-3">
+              $$Z_m(f) = R_{\text{trace}} + \frac{1}{j 2\pi f (C_0 + \Delta C_m)}, \quad \theta_m(f) = -\arctan\left(2\pi f (C_0 + \Delta C_m) R_{\text{trace}}\right)$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Unequal capacitance across tracks shifts the phase separation between phases $A$, $B$, and $C$. The resulting Standing Wave Ratio (SWR) along the coverglass surface becomes:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-amber-300 text-xs overflow-x-auto my-3">
+              $$\text{SWR} = \frac{V_{\max}}{V_{\min}} = \frac{1 + |\Gamma_{\text{phase}}|}{1 - |\Gamma_{\text{phase}}|}, \quad |\Gamma_{\text{phase}}| \approx \sin\left(\frac{|\theta_{\text{actual}} - 120^\circ|}{2}\right)$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              When $\text{SWR} \gg 1.5$, stationary nodes develop along the array, permanently trapping grains which bake and sinter under intense direct solar UV radiation ($1361\text{ W/m}^2$).
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800/80 text-[11px] text-slate-500">
+            <strong>Failure Mechanism:</strong> Uncompensated SWR creates "hot-spots" causing permanent loss of photovoltaic output ($>45\%$ degradation).
+          </div>
+        </div>
+
+        <!-- Pillar 4: Closed-Loop Inversion & Phase Balancer Algorithm -->
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+          <div>
+            <div class="flex items-center gap-2 text-emerald-400 mb-2">
+              <i data-lucide="cpu" class="w-5 h-5"></i>
+              <h3 class="font-bold text-sm text-white">4. State Observer Inversion & Adaptive Retuning</h3>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              RegoShield continuously samples return current $I_m(t)$ and voltage $V_m(t)$ across each phase rail using high-voltage sensing dividers, computing real-time inter-electrode phase:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-emerald-300 text-xs overflow-x-auto my-3">
+              $$\hat{\theta}_m = \arg\left(\frac{1}{T}\int_{0}^{T} V_m(t) e^{-j 2\pi f t} dt\right), \quad \mathbf{e}_\theta = \begin{bmatrix} \hat{\theta}_B - \hat{\theta}_A - 120^\circ \\ \hat{\theta}_C - \hat{\theta}_B - 120^\circ \end{bmatrix}$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              An onboard FPGA-synthesized digital pulse-width modulator applies feedforward corrective phase offsets $\delta \theta_m(k+1)$ and adjusts excitation frequency $f$:
+            </p>
+
+            <div class="formula-box bg-gray-950 p-3 rounded-lg border border-gray-800 text-center text-emerald-300 text-xs overflow-x-auto my-3">
+              $$\begin{bmatrix} \theta_{B,\text{out}} \\ \theta_{C,\text{out}} \end{bmatrix}_{k+1} = \begin{bmatrix} \theta_{B,\text{out}} \\ \theta_{C,\text{out}} \end{bmatrix}_{k} - \mathbf{K}_p \mathbf{e}_\theta - \mathbf{K}_i \int \mathbf{e}_\theta dt$$
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+              By maintaining $\mathbf{e}_\theta \to 0$ in under $0.5\text{ ms}$, RegoShield guarantees pure traveling wave propagation ($\text{SWR} \le 1.05$) regardless of regolith accumulation, thermal shock, or micro-crack impedance anomalies.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800/80 text-[11px] text-slate-500">
+            <strong>Substrate Specification:</strong> Ultrathin ITO/Ag-NW tracks embedded on 50 $\mu\text{m}$ fluorinated ethylene propylene (FEP) substrate.
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: $225,000 NASA SBIR/STTR PROPOSAL & HARDWARE TRANSITION -->
+    <!-- ========================================================================= -->
+    <section id="viewProposal" class="hidden space-y-6">
+
+      <!-- Executive Overview Card -->
+      <div class="p-5 rounded-2xl bg-[#050811] border border-cyan-900/60 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-4">
+          <div>
+            <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">NASA SBIR/STTR Phase I Solicitation</span>
+            <h2 class="text-lg font-bold text-white mt-0.5">Topic TX06.01: Surface Power & Electrostatic Dust Mitigation for Sustained Lunar Operations</h2>
+            <p class="text-xs text-slate-400 mt-1">Autonomous Multiphase Standing Wave Mitigation Software for Electrodynamic Dust Shields</p>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-400 font-mono">Phase I Award Total</div>
+            <div class="text-xl font-mono font-bold text-cyan-400">$225,000</div>
+            <div class="text-[10px] text-emerald-400 mono">Period of Performance: 6 Months</div>
+          </div>
+        </div>
+
+        <!-- STTR University Partner Split Banner -->
+        <div class="mt-4 p-3.5 rounded-xl bg-violet-950/20 border border-violet-800/60 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-violet-900/40 border border-violet-700/50 text-violet-400">
+              <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">STTR Research Institution Partner: University of Central Florida (UCF)</div>
+              <div class="text-[11px] text-slate-400">Center for Advanced Turbomachinery and Energy Research (CATER) & Lunar Dust Chamber Facility</div>
+            </div>
+          </div>
+          <div class="mono text-xs text-right">
+            <span class="text-slate-400">Statutory 30.0% Allocation:</span>
+            <span class="text-violet-300 font-bold ml-1">$67,500</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase I 6-Month Work Breakdown Structure -->
+      <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 shadow-xl">
+        <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i> Phase I Work Breakdown Structure & Milestones (Months 1–6)
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Milestone 1 -->
+          <div class="p-4 rounded-xl bg-gray-900/50 border border-gray-800 relative">
+            <div class="text-[10px] mono text-cyan-400 font-bold mb-1">MONTHS 1–2</div>
+            <h4 class="text-xs font-bold text-white mb-2">Kinetic Modeling & Capacitive Drift Profile</h4>
+            <p class="text-[11px] text-slate-400 leading-relaxed mb-3">
+              Coupled COMSOL-MATLAB finite element simulation of high-voltage traveling wave skew under LHS-1 / LMS-1 lunar simulant dielectric loading and thermal extremes ($-180^\circ\text{C}$ to $+120^\circ\text{C}$).
+            </p>
+            <div class="text-[10px] mono text-slate-500 border-t border-gray-800 pt-2">
+              Deliverable: High-Fidelity SWR Impedance Model
+            </div>
+          </div>
+
+          <!-- Milestone 2 -->
+          <div class="p-4 rounded-xl bg-gray-900/50 border border-gray-800 relative">
+            <div class="text-[10px] mono text-violet-400 font-bold mb-1">MONTHS 3–4</div>
+            <h4 class="text-xs font-bold text-white mb-2">State Observer & Inversion Balancer Software</h4>
+            <p class="text-[11px] text-slate-400 leading-relaxed mb-3">
+              Development of the embedded C++ state observer algorithm executing sub-millisecond fast Fourier impedance decomposition and dynamic $\theta(t)$ PWM adjustment on radiation-hardened Microchip RTG4 FPGA.
+            </p>
+            <div class="text-[10px] mono text-slate-500 border-t border-gray-800 pt-2">
+              Deliverable: Real-Time Closed-Loop Firmware
+            </div>
+          </div>
+
+          <!-- Milestone 3 -->
+          <div class="p-4 rounded-xl bg-gray-900/50 border border-gray-800 relative">
+            <div class="text-[10px] mono text-amber-400 font-bold mb-1">MONTH 5</div>
+            <h4 class="text-xs font-bold text-white mb-2">UCF Vacuum Chamber Dust Mitigation Runs</h4>
+            <p class="text-[11px] text-slate-400 leading-relaxed mb-3">
+              Experimental validation at UCF's ultra-high vacuum ($10^{-5}\text{ Torr}$) cryogenic dust chamber. Benchmarking clearance transmissivity against baseline uncompensated EDS panels with induced micro-cracks.
+            </p>
+            <div class="text-[10px] mono text-slate-500 border-t border-gray-800 pt-2">
+              Deliverable: Empirical Transmissivity Verification (>98%)
+            </div>
+          </div>
+
+          <!-- Milestone 4 -->
+          <div class="p-4 rounded-xl bg-gray-900/50 border border-gray-800 relative">
+            <div class="text-[10px] mono text-emerald-400 font-bold mb-1">MONTH 6</div>
+            <h4 class="text-xs font-bold text-white mb-2">Phase II Hardware Integration Spec</h4>
+            <p class="text-[11px] text-slate-400 leading-relaxed mb-3">
+              Delivery of comprehensive NASA technical report, SWaP-C power budget ($<15\text{W}$ per $2\text{ m}^2$ panel), interface control document (ICD) for Artemis lunar lander avionics and flight solar arrays.
+            </p>
+            <div class="text-[10px] mono text-slate-500 border-t border-gray-800 pt-2">
+              Deliverable: Phase II Transition Proposal ($1.2M)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase II Transition & Facility Access Path -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center gap-2 text-cyan-400 mb-2">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+            <h3 class="font-bold text-sm text-white">University Partner Infrastructure (UCF CATER)</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed mb-3">
+            UCF provides immediate access to state-of-the-art space simulation chambers:
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-start gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400 mt-0.5"></i>
+              <span><strong>Cryo-Vacuum Dust Rig:</strong> $10^{-6}\text{ Torr}$ bell chamber equipped with motorized electrostatic sieve and in-situ pulsed UV radiation source.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400 mt-0.5"></i>
+              <span><strong>High-Speed Shadowgraphy & PIV:</strong> Microscopic particle-image velocimetry to track single-grain $20\ \mu\text{m}$ lunar dust trajectories and repulsive flight angles.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400 mt-0.5"></i>
+              <span><strong>Solar Simulator Spectrometer:</strong> Continuous AM0 spectral measurement verifying optical recovery from $55\%$ (caked) to $>98.7\%$ (balanced traveling wave).</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center gap-2 text-emerald-400 mb-2">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <h3 class="font-bold text-sm text-white">Phase II Flight Transition Roadmap ($850k–$1.2M)</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed mb-3">
+            Following Phase I validation, the software transitions directly into NASA Artemis prime contractor architectures:
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-start gap-2">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-emerald-400 mt-0.5"></i>
+              <span><strong>TRL 4 to TRL 6 Advancement:</strong> Ruggedized embedded coprocessor board tested in thermal-vac vibration profiles according to NASA GEVS standards.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-emerald-400 mt-0.5"></i>
+              <span><strong>Prime Prime Contractor Onboarding:</strong> Direct OEM software licensing to Human Landing System (HLS) and Lunar Terrain Vehicle (LTV) solar array manufacturers.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-emerald-400 mt-0.5"></i>
+              <span><strong>Zero-Consumable Lifespan:</strong> Eliminates water washing, pressurized gas canisters, and abrasive mechanical wiper blades across 10-year lunar surface assets.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: COMMERCIAL & NATIONWIDE ARR BREAKDOWN -->
+    <!-- ========================================================================= -->
+    <section id="viewARR" class="hidden space-y-6">
+
+      <!-- Financial Executive Header -->
+      <div class="p-5 rounded-2xl bg-[#050811] border border-gray-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">Commercial Scaling & Nationwide Market Sizing</span>
+          <h2 class="text-lg font-bold text-white mt-0.5">Civil Enterprise ARR: $214.2M Nationwide Potential</h2>
+          <p class="text-xs text-slate-400 max-w-2xl mt-1">
+            Pure-play civil and industrial software licensing model. Eliminates maintenance downtime, mechanical wiper wear, and abrasive water scarcity across high-criticality assets.
+          </p>
+        </div>
+        <div class="p-3 rounded-xl bg-cyan-950/40 border border-cyan-800/80 text-right mono">
+          <div class="text-[11px] text-slate-400">Enterprise Valuation (10x SaaS Multiple)</div>
+          <div class="text-2xl font-bold text-cyan-400">$2.14 Billion</div>
+        </div>
+      </div>
+
+      <!-- Commercial Market Breakdown Table -->
+      <div class="bg-[#050811] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+            <i data-lucide="table" class="w-4 h-4 text-cyan-400"></i> High-Margin Civil Licensing Verticals
+          </h3>
+          <span class="text-xs mono text-slate-400">Software Runtime / Embedded Inverter Fee</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-900/80 text-slate-400 mono uppercase text-[10px] border-b border-gray-800">
+              <tr>
+                <th class="p-3.5 pl-4">Civil Industry Vertical</th>
+                <th class="p-3.5">Target Application</th>
+                <th class="p-3.5">Software Metric / Pricing</th>
+                <th class="p-3.5">Nationwide Asset Base</th>
+                <th class="p-3.5 pr-4 text-right">Mature ARR ($M)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800 text-slate-300">
+              <tr class="hover:bg-gray-900/40 transition">
+                <td class="p-3.5 pl-4 font-semibold text-white flex items-center gap-2">
+                  <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i> Utility Solar Deserts
+                </td>
+                <td class="p-3.5">Desert utility PV arrays (CA, AZ, NV, TX)</td>
+                <td class="p-3.5 mono">$450 / MW / year</td>
+                <td class="p-3.5 mono">185,000 MW deployed</td>
+                <td class="p-3.5 pr-4 text-right font-mono font-bold text-cyan-400">$83.25M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition">
+                <td class="p-3.5 pl-4 font-semibold text-white flex items-center gap-2">
+                  <i data-lucide="truck" class="w-4 h-4 text-cyan-400"></i> Autonomous Heavy Mining
+                </td>
+                <td class="p-3.5">Haul truck LiDARs, stereocams & radar radomes</td>
+                <td class="p-3.5 mono">$1,200 / vehicle / year</td>
+                <td class="p-3.5 mono">28,500 active mining rigs</td>
+                <td class="p-3.5 pr-4 text-right font-mono font-bold text-cyan-400">$34.20M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition">
+                <td class="p-3.5 pl-4 font-semibold text-white flex items-center gap-2">
+                  <i data-lucide="cpu" class="w-4 h-4 text-violet-400"></i> Semiconductor EUV Fabs
+                </td>
+                <td class="p-3.5">High-NA pellicle & wafer vacuum reticle shields</td>
+                <td class="p-3.5 mono">$48,000 / litho scanner / yr</td>
+                <td class="p-3.5 mono">680 EUV systems globally</td>
+                <td class="p-3.5 pr-4 text-right font-mono font-bold text-cyan-400">$32.64M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition">
+                <td class="p-3.5 pl-4 font-semibold text-white flex items-center gap-2">
+                  <i data-lucide="navigation" class="w-4 h-4 text-emerald-400"></i> Commercial Aviation
+                </td>
+                <td class="p-3.5">Cockpit windshield & pitot-static anti-icing/anti-volcanic ash</td>
+                <td class="p-3.5 mono">$1,800 / airframe / year</td>
+                <td class="p-3.5 mono">16,400 active airliners</td>
+                <td class="p-3.5 pr-4 text-right font-mono font-bold text-cyan-400">$29.52M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition">
+                <td class="p-3.5 pl-4 font-semibold text-white flex items-center gap-2">
+                  <i data-lucide="tractor" class="w-4 h-4 text-emerald-300"></i> Precision Ag Autonomy
+                </td>
+                <td class="p-3.5">Harvester autonomous guidance & weed-cam optics</td>
+                <td class="p-3.5 mono">$350 / unit / year</td>
+                <td class="p-3.5 mono">58,000 precision tractors</td>
+                <td class="p-3.5 pr-4 text-right font-mono font-bold text-cyan-400">$20.30M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition">
+                <td class="p-3.5 pl-4 font-semibold text-white flex items-center gap-2">
+                  <i data-lucide="satellite" class="w-4 h-4 text-rose-400"></i> Commercial LEO / Artemis
+                </td>
+                <td class="p-3.5">Commercial landers, rovers & satellite star trackers</td>
+                <td class="p-3.5 mono">$35,000 / flight unit license</td>
+                <td class="p-3.5 mono">410 payloads scheduled</td>
+                <td class="p-3.5 pr-4 text-right font-mono font-bold text-cyan-400">$14.35M</td>
+              </tr>
+              <tr class="bg-gray-950/80 font-bold text-white border-t-2 border-gray-700">
+                <td class="p-3.5 pl-4 uppercase mono" colspan="4">Total Civil & Commercial Run-Rate ARR</td>
+                <td class="p-3.5 pr-4 text-right font-mono text-cyan-300 text-sm">$214.26M</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Industry Deep-Dive Cards (The Physics & Why Others Missed It) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Card 1: Desert Utility PV -->
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 text-amber-400 mb-2">
+              <i data-lucide="sun" class="w-4 h-4"></i>
+              <h4 class="font-bold text-sm text-white">Utility Solar in Arid Climates</h4>
+            </div>
+            <div class="mb-3">
+              <div class="text-[10px] uppercase font-mono text-slate-500">Physics in 1 Sentence:</div>
+              <p class="text-xs text-slate-300 italic mt-0.5">
+                Sweeping alternating-phase electrostatic potentials levitates non-conductive silica particles, transporting them downward under gravity with zero water usage.
+              </p>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-mono text-rose-400">Why Others Missed This (Plain English):</div>
+              <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                Incumbents waste millions trucking water into desert solar farms or deploy robotic rubber squeegees that scratch glass coatings. RegoShield eliminates consumables completely through solid-state software tuning of existing inverter topologies.
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-gray-800/80 text-[11px] mono text-cyan-400">
+            Target Customer: NextEra, Brookfield, First Solar
+          </div>
+        </div>
+
+        <!-- Card 2: Autonomous Heavy Mining -->
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 text-cyan-400 mb-2">
+              <i data-lucide="truck" class="w-4 h-4"></i>
+              <h4 class="font-bold text-sm text-white">Autonomous Heavy Mining Haulers</h4>
+            </div>
+            <div class="mb-3">
+              <div class="text-[10px] uppercase font-mono text-slate-500">Physics in 1 Sentence:</div>
+              <p class="text-xs text-slate-300 italic mt-0.5">
+                Dynamic phase impedance compensation prevents conductive mineral dust coatings from shorting out high-voltage traveling-wave optics on autonomous perception rigs.
+              </p>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-mono text-rose-400">Why Others Missed This (Plain English):</div>
+              <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                Legacy wipers smear slurry over LiDAR sensors, triggering immediate autonomous vehicle emergency stops. RegoShield operates continuously without moving parts, keeping 400-ton autonomous trucks moving 24/7.
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-gray-800/80 text-[11px] mono text-cyan-400">
+            Target Customer: Caterpillar, Komatsu, Rio Tinto
+          </div>
+        </div>
+
+        <!-- Card 3: Semiconductor EUV Lithography -->
+        <div class="bg-[#050811] border border-gray-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 text-violet-400 mb-2">
+              <i data-lucide="cpu" class="w-4 h-4"></i>
+              <h4 class="font-bold text-sm text-white">High-NA EUV Semiconductor Fabs</h4>
+            </div>
+            <div class="mb-3">
+              <div class="text-[10px] uppercase font-mono text-slate-500">Physics in 1 Sentence:</div>
+              <p class="text-xs text-slate-300 italic mt-0.5">
+                Sub-millimeter dielectrophoretic waves deflect sub-50nm airborne carbon and metal fragments away from extreme-ultraviolet pellicles in deep vacuum.
+              </p>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-mono text-rose-400">Why Others Missed This (Plain English):</div>
+              <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                Fabs discard entire $300k pellicle assemblies when a single sub-micron grain attaches. RegoShield maintains an active traveling electrostatic barrier that repels particles mid-flight before contact.
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-gray-800/80 text-[11px] mono text-cyan-400">
+            Target Customer: ASML, TSMC, Intel, Micron
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Executive Call to Action Box -->
+      <div class="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-gray-900 to-violet-950/40 border border-cyan-800/60 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 class="text-sm font-bold text-white">Commercial Licensing & Strategic Engagement</h4>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Phase I data packages, embedded firmware binaries, and UCF facility testing schedules available for industrial partners.
+          </p>
+        </div>
+        <a href="mailto:support@rfwavecode.com" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
+          <i data-lucide="mail" class="w-4 h-4"></i> Contact Technical Team: support@rfwavecode.com
+        </a>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="border-t border-gray-800/80 py-4 px-6 text-center text-xs text-slate-500 mono bg-[#020307]">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>RegoShield™ Multi-Phase Standing Wave Balancer | NASA SBIR/STTR Topic TX06.01</div>
+      <div>Direct Licensing Inquiries: <a href="mailto:support@rfwavecode.com" class="text-cyan-400 hover:underline">support@rfwavecode.com</a></div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT APPLICATION CORE: SIMULATION, CHARTS & CLOSED-LOOP CONTROL -->
+  <!-- ========================================================================= -->
+  <script>
+    // Initialize Lucide Icons immediately
+    lucide.createIcons();
+
+    // -------------------------------------------------------------
+    // Tab Switching Infrastructure
+    // -------------------------------------------------------------
+    const tabMapping = {
+      'sim': { viewId: 'viewSim', btnId: 'tabBtnSim' },
+      'physics': { viewId: 'viewPhysics', btnId: 'tabBtnPhysics' },
+      'proposal': { viewId: 'viewProposal', btnId: 'tabBtnProposal' },
+      'arr': { viewId: 'viewARR', btnId: 'tabBtnARR' }
+    };
+
+    function switchTab(tabKey) {
+      // Loop over all keys to toggle hidden classes and button styles
+      for (const [key, mapping] of Object.entries(tabMapping)) {
+        const viewEl = document.getElementById(mapping.viewId);
+        const btnEl = document.getElementById(mapping.btnId);
+
+        if (key === tabKey) {
+          viewEl.classList.remove('hidden');
+          btnEl.className = "px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 shadow-sm";
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.className = "px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 text-slate-400 hover:text-white transition";
+        }
+      }
+
+      // Re-render MathJax formulas if visible
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise();
+      }
+
+      // If returning to simulation tab, resize canvas and ensure charts update properly
+      if (tabKey === 'sim') {
+        resizeCanvas();
+        if (phaseChart) phaseChart.resize();
+        if (timeChart) timeChart.resize();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Global Simulation State Variables
+    // -------------------------------------------------------------
+    const simState = {
+      frequency: 24.5,       // kHz
+      phaseOffset: 120.0,    // Target nominal 120 deg
+      actualPhase: 120.0,    // Drifting actual phase
+      capLoading: 12.0,      // pF regolith capacitive load
+      swr: 1.04,             // Standing wave ratio
+      repulsionForce: 42.5,  // microNewtons
+      transmissivity: 99.1,  // percentage
+      autoLoop: true,        // Closed loop controller state
+      inverterPower: 12.4,   // Watts
+      particles: [],
+      historyTime: 0,
+      phaseSpaceHistory: [], // [f, theta] trace points
+      timeSeriesHistory: {
+        labels: [],
+        swr: [],
+        force: []
+      }
+    };
+
+    // Initialize 85 simulated Lunar Dust Regolith Grains
+    function initParticles() {
+      simState.particles = [];
+      const count = 90;
+      for (let i = 0; i < count; i++) {
+        simState.particles.push({
+          x: Math.random() * 800,
+          y: 60 + Math.random() * 90,
+          vx: 0.8 + Math.random() * 2.2,
+          vy: (Math.random() - 0.5) * 0.4,
+          radius: 1.8 + Math.random() * 2.8,
+          settled: false,
+          color: Math.random() > 0.3 ? '#cbd5e1' : '#f59e0b',
+          charge: 0.5 + Math.random() * 1.5
+        });
+      }
+    }
+    initParticles();
+
+    // -------------------------------------------------------------
+    // Physical Canvas Rendering Engine
+    // -------------------------------------------------------------
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 700;
+      const h = rect.height || 360;
+      canvas.width = w * window.devicePixelRatio;
+      canvas.height = h * window.devicePixelRatio;
+      ctx.resetTransform();
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    let waveTime = 0;
+
+    function renderSimulation() {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 700;
+      const h = rect.height || 360;
+
+      // 1. Clear background (Deep lunar dark)
+      ctx.fillStyle = '#020409';
+      ctx.fillRect(0, 0, w, h);
+
+      // 2. Draw Lunar Habitat Solar Array Glass Base
+      const glassY = h - 60;
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, glassY, w, 60);
+
+      // Photovoltaic cell boundary lines
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 90) {
+        ctx.beginPath();
+        ctx.moveTo(x, glassY);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      // Solar cell subtle blue iridescence
+      const grad = ctx.createLinearGradient(0, glassY, 0, h);
+      grad.addColorStop(0, 'rgba(6, 182, 212, 0.15)');
+      grad.addColorStop(1, 'rgba(15, 23, 42, 0.8)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, glassY, w, 60);
+
+      // 3. Draw 3-Phase Embedded Electrodes
+      const electrodePitch = 48;
+      const phases = ['A', 'B', 'C'];
+      const phaseColors = ['#06b6d4', '#8b5cf6', '#f59e0b']; // Cyan, Violet, Amber
+
+      waveTime += (simState.frequency * 0.05);
+
+      for (let i = 0; i < Math.ceil(w / electrodePitch) + 1; i++) {
+        const ex = i * electrodePitch;
+        const phaseIdx = i % 3;
+        const pColor = phaseColors[phaseIdx];
+
+        // Compute local phase potential
+        let phaseOffsetRad = 0;
+        if (phaseIdx === 1) phaseOffsetRad = (simState.actualPhase) * (Math.PI / 180);
+        if (phaseIdx === 2) phaseOffsetRad = (simState.actualPhase * 2) * (Math.PI / 180);
+
+        const instantaneousV = Math.sin(waveTime - (i * 0.8) + phaseOffsetRad);
+
+        // Electrode trace pad
+        ctx.fillStyle = pColor;
+        ctx.shadowColor = pColor;
+        ctx.shadowBlur = Math.abs(instantaneousV) * 8;
+        ctx.fillRect(ex - 4, glassY - 6, 8, 8);
+        ctx.shadowBlur = 0;
+
+        // Label phase on hover or every few tracks
+        ctx.fillStyle = '#64748b';
+        ctx.font = '9px JetBrains Mono';
+        ctx.fillText(phases[phaseIdx], ex - 3, glassY + 16);
+      }
+
+      // 4. Draw Traveling vs Standing Potential Field Lines
+      const waveGradient = ctx.createLinearGradient(0, glassY - 140, 0, glassY);
+      const isSevereStanding = simState.swr > 1.8;
+
+      if (isSevereStanding) {
+        waveGradient.addColorStop(0, 'rgba(239, 68, 68, 0.0)');
+        waveGradient.addColorStop(1, 'rgba(239, 68, 68, 0.18)');
+      } else {
+        waveGradient.addColorStop(0, 'rgba(6, 182, 212, 0.0)');
+        waveGradient.addColorStop(1, 'rgba(6, 182, 212, 0.15)');
+      }
+      ctx.fillStyle = waveGradient;
+      ctx.fillRect(0, glassY - 140, w, 140);
+
+      // Draw continuous electrical field envelope wave
+      ctx.beginPath();
+      ctx.strokeStyle = isSevereStanding ? 'rgba(239, 68, 68, 0.8)' : 'rgba(6, 182, 212, 0.7)';
+      ctx.lineWidth = 2;
+
+      // Standing wave component factor
+      const standingFactor = (simState.swr - 1.0) / 3.0;
+
+      for (let x = 0; x < w; x += 4) {
+        // Superposition of traveling and reflected standing wave
+        const travelComp = Math.sin(waveTime - (x * 0.035));
+        const standComp = Math.sin(x * 0.07) * Math.cos(waveTime);
+        const compositeField = ((1 - standingFactor) * travelComp) + (standingFactor * standComp * 2.2);
+
+        const y = (glassY - 50) + compositeField * 26;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // 5. Node Highlight Lines (If Standing Waves Exist)
+      if (simState.swr > 1.35) {
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.5;
+        // Nodes repeat at spatial half-wavelength
+        const nodeInterval = 144;
+        for (let nx = 72; nx < w; nx += nodeInterval) {
+          ctx.beginPath();
+          ctx.moveTo(nx, glassY - 120);
+          ctx.lineTo(nx, glassY);
+          ctx.stroke();
+
+          ctx.fillStyle = '#ef4444';
+          ctx.font = '9px JetBrains Mono';
+          ctx.fillText("DEAD NODE", nx - 26, glassY - 125);
+        }
+        ctx.setLineDash([]);
+      }
+
+      // 6. Update and Draw Regolith Particles
+      const nodeXList = [72, 72 + 144, 72 + 288, 72 + 432, 72 + 576, 72 + 720];
+
+      simState.particles.forEach(p => {
+        // If high SWR, particles clump near standing dead nodes
+        let nearNode = false;
+        if (simState.swr > 1.35) {
+          nodeXList.forEach(nx => {
+            if (Math.abs(p.x - nx) < 24) {
+              nearNode = true;
+              // Attract strongly toward node
+              p.vx += (nx - p.x) * 0.03;
+              p.vy += 0.15; // sink to surface
+            }
+          });
+        }
+
+        if (nearNode && simState.swr > 1.8) {
+          p.settled = true;
+        } else {
+          // Normal lateral travelling repulsion force
+          const lateralPush = (simState.repulsionForce / 40) * 1.5;
+          p.vx = (p.vx * 0.95) + (lateralPush * 0.08);
+          // Levitation force counteracting lunar gravity
+          const levitation = Math.sin((p.x * 0.05) - waveTime) * 1.2;
+          p.vy = (p.vy * 0.92) - (levitation * 0.06);
+          p.settled = false;
+        }
+
+        // Apply motion
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Ground constraint
+        if (p.y > glassY - 3) {
+          p.y = glassY - 3;
+          p.vy = -Math.abs(p.vy) * 0.4;
+        }
+        if (p.y < glassY - 120) {
+          p.y = glassY - 120;
+          p.vy = Math.abs(p.vy) * 0.5;
+        }
+
+        // Wrap around right edge
+        if (p.x > w + 10) {
+          p.x = -10;
+          p.y = glassY - 30 - Math.random() * 60;
+          p.vx = 1.0 + Math.random() * 2.0;
+        }
+
+        // Draw particle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.settled ? '#ef4444' : p.color;
+        ctx.shadowColor = p.settled ? '#ef4444' : p.color;
+        ctx.shadowBlur = p.settled ? 6 : 2;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+    }
+
+    // -------------------------------------------------------------
+    // Chart.js Diagnostic Visualizations
+    // -------------------------------------------------------------
+
+    // Diagnostic 1: Phase-Space Orbit Chart (Frequency vs Phase Angle)
+    const phaseCtx = document.getElementById('phaseSpaceChart').getContext('2d');
+
+    // Nominal baseline curve data
+    const freqRange = [10, 15, 20, 24.5, 30, 35, 40];
+    const nominalLine = freqRange.map(f => ({ x: f, y: 120.0 }));
+
+    const phaseChart = new Chart(phaseCtx, {
+      type: 'scatter',
+      data: {
+        datasets: [
+          // Target Corridor Envelope (Upper Safe Boundary)
+          {
+            label: 'Upper Safety Bound (125°)',
+            data: freqRange.map(f => ({ x: f, y: 125 })),
+            borderColor: 'rgba(6, 182, 212, 0.4)',
+            borderDash: [5, 5],
+            showLine: true,
+            pointRadius: 0,
+            fill: false
+          },
+          // Target Corridor Envelope (Lower Safe Boundary)
+          {
+            label: 'Lower Safety Bound (115°)',
+            data: freqRange.map(f => ({ x: f, y: 115 })),
+            borderColor: 'rgba(6, 182, 212, 0.4)',
+            borderDash: [5, 5],
+            showLine: true,
+            pointRadius: 0,
+            fill: false
+          },
+          // Theoretical Ideal Centerline
+          {
+            label: 'Nominal 120° Offset',
+            data: nominalLine,
+            borderColor: '#06b6d4',
+            borderWidth: 2,
+            showLine: true,
+            pointRadius: 0,
+            fill: false
+          },
+          // Hazard Boundary Threshold (Standing Node Formation > 135°)
+          {
+            label: 'Standing Node Hazard (>135°)',
+            data: freqRange.map(f => ({ x: f, y: 135 })),
+            borderColor: 'rgba(239, 68, 68, 0.6)',
+            borderDash: [4, 4],
+            showLine: true,
+            pointRadius: 0,
+            fill: false
+          },
+          // Live State Trajectory Trail
+          {
+            label: 'Live Operating Orbit',
+            data: [],
+            borderColor: 'rgba(139, 92, 246, 0.6)',
+            backgroundColor: '#8b5cf6',
+            showLine: true,
+            pointRadius: 3,
+            borderWidth: 1.5
+          },
+          // Current Head Point
+          {
+            label: 'Current System State',
+            data: [{ x: 24.5, y: 120.0 }],
+            borderColor: '#ffffff',
+            backgroundColor: '#10b981',
+            pointRadius: 7,
+            pointHoverRadius: 9
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 0 },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Inverter Drive Frequency: f (kHz)',
+              color: '#94a3b8',
+              font: { family: 'JetBrains Mono', size: 10 }
+            },
+            min: 10,
+            max: 40,
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Inter-Electrode Phase Angle: θ (deg)',
+              color: '#94a3b8',
+              font: { family: 'JetBrains Mono', size: 10 }
+            },
+            min: 95,
+            max: 150,
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            borderColor: '#334155',
+            borderWidth: 1,
+            titleFont: { family: 'JetBrains Mono' },
+            bodyFont: { family: 'JetBrains Mono' }
+          }
+        }
+      }
+    });
+
+    // Diagnostic 2: Time-Series Dual Chart (SWR & Ejection Force)
+    const timeCtx = document.getElementById('timeSeriesChart').getContext('2d');
+    const timeChart = new Chart(timeCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Standing Wave Ratio (SWR)',
+            data: [],
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            yAxisID: 'ySWR',
+            borderWidth: 2,
+            tension: 0.25,
+            pointRadius: 0
+          },
+          {
+            label: 'Lateral Force F_x (µN)',
+            data: [],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            yAxisID: 'yForce',
+            borderWidth: 2,
+            tension: 0.25,
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 0 },
+        scales: {
+          x: {
+            display: false
+          },
+          ySWR: {
+            type: 'linear',
+            position: 'left',
+            min: 1.0,
+            max: 3.5,
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#06b6d4', font: { family: 'JetBrains Mono', size: 9 } }
+          },
+          yForce: {
+            type: 'linear',
+            position: 'right',
+            min: 0,
+            max: 60,
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#10b981', font: { family: 'JetBrains Mono', size: 9 } }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+
+    // -------------------------------------------------------------
+    // Real-Time Control & Inversion Balancer Math
+    // -------------------------------------------------------------
+
+    function updateSimulationStep() {
+      // 1. Calculate open-loop phase drift based on regolith capacitive load & drive frequency
+      // Heavy regolith shifts RC group delay skew:
+      const theoreticalOffset = 120.0;
+      const rawCapSkew = (simState.capLoading * 0.48) * (simState.frequency / 24.5);
+
+      if (simState.autoLoop) {
+        // Closed-Loop Active Balancer: Compensates within milliseconds
+        // Slight residual error with realistic micro-jitter
+        const jitter = (Math.random() - 0.5) * 0.4;
+        simState.actualPhase = theoreticalOffset + jitter + (rawCapSkew * 0.04);
+        document.getElementById('retunerLed').className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+        document.getElementById('retunerLabel').innerText = "Phase Balancing Loop: Locked (0.12 ms response)";
+      } else {
+        // Open loop: Phase skews unchecked
+        simState.actualPhase = theoreticalOffset + rawCapSkew;
+        document.getElementById('retunerLed').className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+        document.getElementById('retunerLabel').innerText = "Phase Balancer Disengaged: Skew Uncompensated";
+      }
+
+      // 2. Compute SWR and Physical DEP Lateral Force
+      const phaseDelta = Math.abs(simState.actualPhase - 120.0);
+      const gamma = Math.sin((phaseDelta * Math.PI) / 360);
+      simState.swr = Math.max(1.02, (1 + gamma) / Math.max(0.01, (1 - gamma)));
+
+      // Lateral ejection force plummets as SWR rises (dead zones trap grains)
+      const forceRatio = 1.0 / (1.0 + Math.pow(simState.swr - 1.0, 2.2) * 3.5);
+      simState.repulsionForce = Math.max(2.1, 46.0 * forceRatio);
+
+      // Transmissivity degradation
+      simState.transmissivity = Math.max(48.0, 99.4 - (simState.swr - 1.0) * 22.0);
+
+      // Inverter power draw (swr reflection increases reactive power losses)
+      simState.inverterPower = (11.8 + (simState.swr - 1.0) * 9.5).toFixed(1);
+
+      // Update HUD telemetry DOM
+      const skewDeg = (simState.actualPhase - 120.0);
+      document.getElementById('statSkew').innerText = (skewDeg >= 0 ? '+' : '') + skewDeg.toFixed(1) + '°';
+      document.getElementById('statSWR').innerText = simState.swr.toFixed(2);
+      document.getElementById('statTrans').innerText = simState.transmissivity.toFixed(1) + '%';
+      document.getElementById('statFreq').innerText = simState.frequency.toFixed(1) + ' kHz';
+      document.getElementById('invPwrBadge').innerText = `1.85 kV @ ${simState.inverterPower}W`;
+      document.getElementById('waveVelBadge').innerText = (simState.frequency * 5.0).toFixed(1) + ' m/s';
+
+      // Status Badges & Alerts
+      const globalBadge = document.getElementById('globalStatusBadge');
+      const nodeCountBadge = document.getElementById('nodeCountBadge');
+      const banner = document.getElementById('telemetryBanner');
+      const bannerText = document.getElementById('bannerText');
+
+      if (simState.swr <= 1.25) {
+        globalBadge.className = "text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/80 flex items-center gap-1.5";
+        globalBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> TRAVELING WAVE BALANCED';
+        nodeCountBadge.className = "px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800";
+        nodeCountBadge.innerText = "0 DETECTED";
+        banner.className = "p-3.5 rounded-xl border border-cyan-900/60 bg-cyan-950/20 text-xs flex flex-wrap items-center justify-between gap-3 text-cyan-200";
+        bannerText.innerHTML = `Nominal 3-Phase Traveling Wave Active: Inter-electrode offset $\\Delta\\theta = ${simState.actualPhase.toFixed(1)}^\\circ$ at $f = ${simState.frequency.toFixed(1)}\\text{ kHz}$. Continuous lateral clearance verified.`;
+      } else if (simState.swr <= 1.7) {
+        globalBadge.className = "text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800/80 flex items-center gap-1.5";
+        globalBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> SWR ELEVATED / MARGINAL';
+        nodeCountBadge.className = "px-2 py-0.5 rounded bg-amber-950/80 text-amber-400 border border-amber-800";
+        nodeCountBadge.innerText = "4 MARGINAL NODES";
+        banner.className = "p-3.5 rounded-xl border border-amber-900/60 bg-amber-950/20 text-xs flex flex-wrap items-center justify-between gap-3 text-amber-200";
+        bannerText.innerHTML = `Warning: Phase angle drift detected ($\\theta = ${simState.actualPhase.toFixed(1)}^\\circ$). Partial standing wave reflections causing sluggish dust velocity.`;
+      } else {
+        globalBadge.className = "text-[11px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-400 border border-rose-800/80 flex items-center gap-1.5";
+        globalBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span> CRITICAL STANDING NODE FORMATION';
+        nodeCountBadge.className = "px-2 py-0.5 rounded bg-rose-950/80 text-rose-400 border border-rose-800";
+        nodeCountBadge.innerText = "6 SEVERE CLUMPS";
+        banner.className = "p-3.5 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs flex flex-wrap items-center justify-between gap-3 text-rose-200";
+        bannerText.innerHTML = `Critical Hazard: Standing wave nodes established (SWR = ${simState.swr.toFixed(2)}). Severe regolith accumulation and solar clumping underway!`;
+      }
+
+      // 3. Record History for Phase-Space and Time-Series
+      simState.phaseSpaceHistory.push({ x: simState.frequency, y: simState.actualPhase });
+      if (simState.phaseSpaceHistory.length > 25) simState.phaseSpaceHistory.shift();
+
+      simState.historyTime++;
+      simState.timeSeriesHistory.labels.push(simState.historyTime);
+      simState.timeSeriesHistory.swr.push(simState.swr);
+      simState.timeSeriesHistory.force.push(simState.repulsionForce);
+
+      if (simState.timeSeriesHistory.labels.length > 40) {
+        simState.timeSeriesHistory.labels.shift();
+        simState.timeSeriesHistory.swr.shift();
+        simState.timeSeriesHistory.force.shift();
+      }
+
+      // 4. Update Charts
+      phaseChart.data.datasets[4].data = [...simState.phaseSpaceHistory];
+      phaseChart.data.datasets[5].data = [{ x: simState.frequency, y: simState.actualPhase }];
+      phaseChart.data.datasets[5].backgroundColor = simState.swr > 1.7 ? '#ef4444' : (simState.swr > 1.25 ? '#f59e0b' : '#10b981');
+      phaseChart.update('none');
+
+      timeChart.data.labels = simState.timeSeriesHistory.labels;
+      timeChart.data.datasets[0].data = simState.timeSeriesHistory.swr;
+      timeChart.data.datasets[1].data = simState.timeSeriesHistory.force;
+      timeChart.update('none');
+    }
+
+    // -------------------------------------------------------------
+    // Main Animation & Throttled Physics Interval Loops
+    // -------------------------------------------------------------
+    function renderLoop() {
+      renderSimulation();
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Physics step updates every 80 ms to ensure fluid telemetry without browser jank
+    const simInterval = setInterval(updateSimulationStep, 80);
+
+    // -------------------------------------------------------------
+    // Interactive Controls & Fault Injection Handlers
+    // -------------------------------------------------------------
+
+    // Auto-loop toggle
+    const autoLoopToggle = document.getElementById('autoLoopToggle');
+    autoLoopToggle.addEventListener('change', (e) => {
+      simState.autoLoop = e.target.checked;
+    });
+
+    // Capacitive Load Slider
+    const sliderCap = document.getElementById('sliderCapLoad');
+    const labelCap = document.getElementById('labelCapLoad');
+    sliderCap.addEventListener('input', (e) => {
+      simState.capLoading = parseFloat(e.target.value);
+      labelCap.innerText = simState.capLoading.toFixed(1) + ' pF';
+    });
+
+    // Drive Frequency Slider
+    const sliderFreq = document.getElementById('sliderDriveFreq');
+    const labelFreq = document.getElementById('labelDriveFreq');
+    sliderFreq.addEventListener('input', (e) => {
+      simState.frequency = parseFloat(e.target.value);
+      labelFreq.innerText = simState.frequency.toFixed(1) + ' kHz';
+    });
+
+    // Fault Injection Scenarios
+    function injectFault(type) {
+      if (type === 'microcrack') {
+        // Disables auto loop, jumps capacitive load and induces severe phase imbalance
+        autoLoopToggle.checked = false;
+        simState.autoLoop = false;
+        simState.capLoading = 45.0;
+        sliderCap.value = 45;
+        labelCap.innerText = '45.0 pF';
+      } else if (type === 'clumping') {
+        // Sudden massive dust accumulation
+        simState.capLoading = 58.0;
+        sliderCap.value = 58;
+        labelCap.innerText = '58.0 pF';
+        // Add dense cluster of particles
+        for (let i = 0; i < 25; i++) {
+          simState.particles.push({
+            x: 200 + Math.random() * 80,
+            y: 250 + Math.random() * 30,
+            vx: 0.1,
+            vy: 0.1,
+            radius: 2.2 + Math.random() * 2,
+            settled: true,
+            color: '#ef4444',
+            charge: 0.3
+          });
+        }
+      } else if (type === 'harmonic') {
+        // Frequency detune
+        autoLoopToggle.checked = false;
+        simState.autoLoop = false;
+        simState.frequency = 38.0;
+        sliderFreq.value = 38.0;
+        labelFreq.innerText = '38.0 kHz';
+      }
+    }
+
+    function resetNominalState() {
+      autoLoopToggle.checked = true;
+      simState.autoLoop = true;
+      simState.capLoading = 12.0;
+      sliderCap.value = 12;
+      labelCap.innerText = '12.0 pF';
+      simState.frequency = 24.5;
+      sliderFreq.value = 24.5;
+      labelFreq.innerText = '24.5 kHz';
+      initParticles();
+    }
+
+    function manualRetuneCycle() {
+      // Manually trigger closed loop retune even if auto is off
+      simState.actualPhase = 120.0 + (Math.random() - 0.5) * 0.3;
+      updateSimulationStep();
+    }
+
+    // -------------------------------------------------------------
+    // Page Load Initialization
+    // -------------------------------------------------------------
+    window.onload = function () {
+      resizeCanvas();
+      renderLoop();
+      // Initial MathJax run
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise();
+      }
+    };
+  </script>
+</body>
+</html>
